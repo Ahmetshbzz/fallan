@@ -38,7 +38,7 @@ class GeminiService {
             "contents": [
                 [
                     "parts": [
-                        ["text": "Bu fotoğrafa bakarak bana bir kehanet veya astrolojik bir yorum söyler misin?"],
+                        ["text": "Bu fotoğrafa dikkatlice bak ve içindeki öğeleri, renkleri, kompozisyonu analiz et. Fotoğraftaki detaylardan yola çıkarak kişiye özel bir astrolojik yorum veya falcılık yorumu yap. Fotoğrafın içeriği ile ilişkilendirerek, geleceğe dair öngörüler, kişinin enerjisi ve karakteri hakkında bilgiler ver. Türkçe yanıt ver ve yorumunda şu unsurları içer: 1) Fotoğrafta gördüğün sembolik unsurlar, 2) Bu unsurların kişinin hayatına etkisi, 3) Yakın gelecek için tahminler. Cevabını doğrudan yorumla başlat, fotoğrafı tanımlamak için fazla zaman harcama."],
                         ["inlineData": [
                             "mimeType": "image/jpeg",
                             "data": base64EncodedImage
@@ -47,7 +47,7 @@ class GeminiService {
                 ]
             ],
             "generationConfig": [
-                "temperature": 0.4,
+                "temperature": 0.7,
                 "topK": 32,
                 "topP": 0.95,
                 "maxOutputTokens": 1024
