@@ -4,6 +4,8 @@ import PhotosUI
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showHistory = false
+    // Fotoğraf yükleme durumunu takip etmek için
+    @State private var refreshUI = UUID()
     
     var body: some View {
         ZStack {
@@ -26,6 +28,7 @@ struct HomeView: View {
                 
                 // İçerik alanı
                 contentView
+                    .id(refreshUI) // UI güncellemelerini zorla
                 
                 Spacer()
                 
@@ -52,8 +55,9 @@ struct HomeView: View {
             .sheet(isPresented: $showHistory) {
                 ReadingHistoryView(readingStore: viewModel.readingStore)
             }
-            .sheet(isPresented: $viewModel.imageManager.showImagePicker) {
-                ImagePickerView(selectedImage: $viewModel.imageManager.selectedImage)
+            .onChange(of: viewModel.imageManager.selectedImage) { _, _ in
+                // Fotoğraf yüklendiğinde UI'ı güncelle
+                refreshUI = UUID()
             }
         }
     }
@@ -85,6 +89,7 @@ struct HomeView: View {
     private var uploadView: some View {
         VStack(spacing: 20) {
             if let selectedImage = viewModel.imageManager.selectedImage {
+                // Seçilen görüntü görünümü
                 Image(uiImage: selectedImage)
                     .resizable()
                     .scaledToFit()
@@ -93,16 +98,39 @@ struct HomeView: View {
                     .shadow(radius: 10)
                     .padding(.horizontal)
                 
-                Button {
-                    Task {
-                        await viewModel.analyzeImage()
-                    }
-                } label: {
-                    Text("Analiz Et")
-                        .font(.title3.bold())
+                HStack(spacing: 20) {
+                    // Yeni fotoğraf seçme butonu
+                    Button {
+                        viewModel.imageManager.resetSelection()
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Değiştir")
+                        }
+                        .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.blue.opacity(0.7))
+                        )
+                    }
+                    
+                    // Analiz başlatma butonu
+                    Button {
+                        Task {
+                            await viewModel.analyzeImage()
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "sparkles")
+                            Text("Analiz Et")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(LinearGradient(
@@ -111,69 +139,96 @@ struct HomeView: View {
                                     endPoint: .trailing
                                 ))
                         )
-                        .shadow(radius: 5)
-                        .padding(.horizontal, 40)
+                    }
                 }
-            } else {
+                .padding(.horizontal, 20)
+            } else if viewModel.imageManager.isLoading {
+                // Yükleniyor göstergesi
                 VStack(spacing: 20) {
-                    // PhotoPicker (SwiftUI yöntemi)
-                    PhotosPicker(selection: $viewModel.imageManager.imageSelection, matching: .images, photoLibrary: .shared()) {
-                        VStack(spacing: 15) {
-                            Image(systemName: "photo.on.rectangle.angled")
-                                .font(.system(size: 60))
-                                .foregroundColor(.white)
-                            
-                            Text("Fotoğraf Seç (PhotosPicker)")
-                                .font(.title3.bold())
-                                .foregroundColor(.white)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 120)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white.opacity(0.15))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                .blur(radius: 1)
-                        )
-                        .padding(.horizontal, 40)
-                    }
+                    ProgressView()
+                        .scaleEffect(2)
+                        .tint(.white)
                     
-                    // Alternatif yöntem (UIKit yöntemi)
-                    Button {
-                        viewModel.imageManager.showImagePicker = true
-                    } label: {
-                        VStack(spacing: 15) {
-                            Image(systemName: "photo.stack")
-                                .font(.system(size: 60))
-                                .foregroundColor(.white)
-                            
-                            Text("Fotoğraf Seç (UIKit)")
-                                .font(.title3.bold())
-                                .foregroundColor(.white)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 120)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.blue.opacity(0.25))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.blue.opacity(0.5), lineWidth: 2)
-                                .blur(radius: 1)
-                        )
-                        .padding(.horizontal, 40)
-                    }
+                    Text("Fotoğraf Yükleniyor...")
+                        .font(.headline)
+                        .foregroundColor(.white)
                 }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                .background(Color.black.opacity(0.2))
+                .cornerRadius(20)
+                .padding(.horizontal)
+            } else if viewModel.imageManager.hasError {
+                // Hata görünümü
+                VStack(spacing: 20) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.yellow)
+                    
+                    Text("Fotoğraf yüklenirken bir hata oluştu.\nLütfen tekrar deneyin.")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    
+                    photoPickerButton
+                }
+                .padding()
+                .background(Color.black.opacity(0.3))
+                .cornerRadius(20)
+                .padding(.horizontal)
+            } else {
+                // Fotoğraf seçme görünümü
+                VStack(spacing: 15) {
+                    Text("Fotoğrafınızdan Kehanet Alın")
+                        .font(.title2.bold())
+                        .foregroundColor(.white)
+                    
+                    Text("Herhangi bir fotoğrafınızı seçin ve yapay zeka size özel yorumlar üretsin")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                        .padding(.bottom, 10)
+                    
+                    photoPickerButton
+                }
+            }
+        }
+    }
+    
+    // Fotoğraf seçici butonu
+    private var photoPickerButton: some View {
+        PhotosPicker(
+            selection: $viewModel.imageManager.imageSelection,
+            matching: .images,
+            photoLibrary: .shared()
+        ) {
+            VStack(spacing: 15) {
+                Image(systemName: "photo.on.rectangle.angled")
+                    .font(.system(size: 60))
+                    .foregroundColor(.white)
                 
-                Text("Kehanet için bir fotoğraf seçin")
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
+                Text("Fotoğraf Seç")
+                    .font(.title3.bold())
+                    .foregroundColor(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 200)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white.opacity(0.15))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                    .blur(radius: 1)
+            )
+            .padding(.horizontal, 40)
+        }
+        .onChange(of: viewModel.imageManager.imageSelection) { _, newValue in
+            if newValue != nil {
+                print("Fotoğraf seçildi, yükleme başlatılıyor...")
+                viewModel.imageManager.loadSelectedImage()
             }
         }
     }

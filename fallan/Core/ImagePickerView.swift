@@ -13,7 +13,9 @@ struct ImagePickerView: UIViewControllerRepresentable {
         return picker
     }
     
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
+        // Güncelleme gerekmediği için boş bırakıldı
+    }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -28,13 +30,19 @@ struct ImagePickerView: UIViewControllerRepresentable {
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let image = info[.originalImage] as? UIImage {
-                parent.selectedImage = image
+                print("UIKit ImagePicker: Görüntü seçildi - \(image.size.width)x\(image.size.height)")
+                DispatchQueue.main.async {
+                    self.parent.selectedImage = image
+                }
+            } else {
+                print("UIKit ImagePicker: Görüntü seçilemedi")
             }
             
             parent.presentationMode.wrappedValue.dismiss()
         }
         
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            print("UIKit ImagePicker: İptal edildi")
             parent.presentationMode.wrappedValue.dismiss()
         }
     }
