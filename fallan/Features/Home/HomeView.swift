@@ -52,6 +52,9 @@ struct HomeView: View {
             .sheet(isPresented: $showHistory) {
                 ReadingHistoryView(readingStore: viewModel.readingStore)
             }
+            .sheet(isPresented: $viewModel.imageManager.showImagePicker) {
+                ImagePickerView(selectedImage: $viewModel.imageManager.selectedImage)
+            }
         }
     }
     
@@ -112,28 +115,58 @@ struct HomeView: View {
                         .padding(.horizontal, 40)
                 }
             } else {
-                PhotosPicker(selection: $viewModel.imageManager.imageSelection, matching: .images) {
-                    VStack(spacing: 15) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 60))
-                            .foregroundColor(.white)
-                        
-                        Text("Fotoğraf Seç")
-                            .font(.title3.bold())
-                            .foregroundColor(.white)
+                VStack(spacing: 20) {
+                    // PhotoPicker (SwiftUI yöntemi)
+                    PhotosPicker(selection: $viewModel.imageManager.imageSelection, matching: .images, photoLibrary: .shared()) {
+                        VStack(spacing: 15) {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .font(.system(size: 60))
+                                .foregroundColor(.white)
+                            
+                            Text("Fotoğraf Seç (PhotosPicker)")
+                                .font(.title3.bold())
+                                .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white.opacity(0.15))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                .blur(radius: 1)
+                        )
+                        .padding(.horizontal, 40)
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white.opacity(0.15))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                            .blur(radius: 1)
-                    )
-                    .padding(.horizontal, 40)
+                    
+                    // Alternatif yöntem (UIKit yöntemi)
+                    Button {
+                        viewModel.imageManager.showImagePicker = true
+                    } label: {
+                        VStack(spacing: 15) {
+                            Image(systemName: "photo.stack")
+                                .font(.system(size: 60))
+                                .foregroundColor(.white)
+                            
+                            Text("Fotoğraf Seç (UIKit)")
+                                .font(.title3.bold())
+                                .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.blue.opacity(0.25))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.blue.opacity(0.5), lineWidth: 2)
+                                .blur(radius: 1)
+                        )
+                        .padding(.horizontal, 40)
+                    }
                 }
                 
                 Text("Kehanet için bir fotoğraf seçin")
