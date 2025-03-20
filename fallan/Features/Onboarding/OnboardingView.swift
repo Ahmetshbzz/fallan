@@ -3,16 +3,13 @@ import SwiftUI
 struct OnboardingView: View {
     @State private var showHome = false
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @EnvironmentObject private var themeManager: ThemeManager
     
     var body: some View {
         ZStack {
             // Arka plan gradyanı
-            LinearGradient(
-                gradient: Gradient(colors: [Color(#colorLiteral(red: 0.09019608051, green: 0, blue: 0.3019607961, alpha: 1)), Color(#colorLiteral(red: 0.3647058904, green: 0, blue: 0.5176470876, alpha: 1))]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            LinearGradient.appPrimary
+                .ignoresSafeArea()
             
             // Yıldızlar efekti
             StarsView()
@@ -24,15 +21,15 @@ struct OnboardingView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 80))
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                     
                     Text("Fallan")
                         .font(.system(size: 50, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                     
                     Text("Fotoğraflardan Geleceğinizi Keşfedin")
                         .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.appText.opacity(0.8))
                 }
                 
                 Spacer()
@@ -43,16 +40,19 @@ struct OnboardingView: View {
                 Spacer()
                 
                 // Başlangıç butonu
-                GradientButton(
-                    title: "Keşfetmeye Başla", 
-                    action: {
-                        withAnimation {
-                            hasSeenOnboarding = true
-                            showHome = true
-                        }
-                    },
-                    iconName: "arrow.right"
-                )
+                Button {
+                    withAnimation {
+                        hasSeenOnboarding = true
+                        showHome = true
+                    }
+                } label: {
+                    HStack {
+                        Text("Keşfetmeye Başla")
+                        Image(systemName: "arrow.right")
+                    }
+                }
+                .appPrimaryButton()
+                .padding(.horizontal, 40)
                 .padding(.bottom, 40)
             }
             .fullScreenCover(isPresented: $showHome) {

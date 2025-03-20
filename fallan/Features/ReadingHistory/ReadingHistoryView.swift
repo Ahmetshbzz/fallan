@@ -3,18 +3,15 @@ import SwiftUI
 struct ReadingHistoryView: View {
     @ObservedObject var readingStore: ReadingStore
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var themeManager: ThemeManager
     @State private var selectedReading: Reading?
     
     var body: some View {
         NavigationStack {
             ZStack {
                 // Arka plan gradyanı
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(#colorLiteral(red: 0.09019608051, green: 0, blue: 0.3019607961, alpha: 1)), Color(#colorLiteral(red: 0.3647058904, green: 0, blue: 0.5176470876, alpha: 1))]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                LinearGradient.appPrimary
+                    .ignoresSafeArea()
                 
                 VStack {
                     if readingStore.readings.isEmpty {
@@ -30,7 +27,7 @@ struct ReadingHistoryView: View {
                         Button("Kapat") {
                             dismiss()
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                     }
                 }
             }

@@ -4,24 +4,21 @@ import PhotosUI
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showHistory = false
+    @State private var showThemeSettings = false
     // Fotoğraf yükleme durumunu takip etmek için
     @State private var refreshUI = UUID()
     
     var body: some View {
         ZStack {
             // Arka plan gradyanı
-            LinearGradient(
-                gradient: Gradient(colors: [Color(#colorLiteral(red: 0.09019608051, green: 0, blue: 0.3019607961, alpha: 1)), Color(#colorLiteral(red: 0.3647058904, green: 0, blue: 0.5176470876, alpha: 1))]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            LinearGradient.appPrimary
+                .ignoresSafeArea()
             
             VStack(spacing: 20) {
                 // Başlık
                 Text("Fallan")
                     .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(.appText)
                     .padding(.top, 40)
                 
                 Spacer()
@@ -32,28 +29,34 @@ struct HomeView: View {
                 
                 Spacer()
                 
-                // Alt gezinme çubuğu
+                // Alt butonlar
                 HStack {
+                    // Geçmiş butonu
+                    Button(action: {
+                        showHistory = true
+                    }) {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                    .appIconButton()
+                    
                     Spacer()
                     
-                    Button {
-                        showHistory = true
-                    } label: {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(
-                                Circle()
-                                    .fill(Color(#colorLiteral(red: 0.5568627715, green: 0.3529411852, blue: 0.9686274529, alpha: 1)).opacity(0.3))
-                            )
+                    // Tema ayarları butonu
+                    Button(action: {
+                        showThemeSettings = true
+                    }) {
+                        Image(systemName: "paintpalette")
                     }
+                    .appIconButton()
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 16)
             }
             .sheet(isPresented: $showHistory) {
                 ReadingHistoryView(readingStore: viewModel.readingStore)
+            }
+            .sheet(isPresented: $showThemeSettings) {
+                ThemeSettingsView()
             }
             .onChange(of: viewModel.imageManager.selectedImage) { _, _ in
                 // Fotoğraf yüklendiğinde UI'ı güncelle
@@ -71,7 +74,7 @@ struct HomeView: View {
         case .loading:
             ProgressView()
                 .scaleEffect(2)
-                .tint(.white)
+                .tint(.appText)
                 .frame(maxWidth: .infinity, maxHeight: 300)
                 .background(Color.black.opacity(0.2))
                 .cornerRadius(20)
@@ -107,15 +110,8 @@ struct HomeView: View {
                             Image(systemName: "arrow.counterclockwise")
                             Text("Değiştir")
                         }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.blue.opacity(0.7))
-                        )
                     }
+                    .appSecondaryButton()
                     
                     // Analiz başlatma butonu
                     Button {
@@ -127,19 +123,8 @@ struct HomeView: View {
                             Image(systemName: "sparkles")
                             Text("Analiz Et")
                         }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(LinearGradient(
-                                    gradient: Gradient(colors: [Color(#colorLiteral(red: 0.5568627715, green: 0.3529411852, blue: 0.9686274529, alpha: 1)), Color(#colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1))]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                ))
-                        )
                     }
+                    .appPrimaryButton()
                 }
                 .padding(.horizontal, 20)
             } else if viewModel.imageManager.isLoading {
@@ -147,11 +132,11 @@ struct HomeView: View {
                 VStack(spacing: 20) {
                     ProgressView()
                         .scaleEffect(2)
-                        .tint(.white)
+                        .tint(.appText)
                     
                     Text("Fotoğraf Yükleniyor...")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                 }
                 .frame(height: 200)
                 .frame(maxWidth: .infinity)
@@ -167,7 +152,7 @@ struct HomeView: View {
                     
                     Text("Fotoğraf yüklenirken bir hata oluştu.\nLütfen tekrar deneyin.")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                         .multilineTextAlignment(.center)
                     
                     photoPickerButton
@@ -181,11 +166,11 @@ struct HomeView: View {
                 VStack(spacing: 15) {
                     Text("Fotoğrafınızdan Kehanet Alın")
                         .font(.title2.bold())
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                     
                     Text("Herhangi bir fotoğrafınızı seçin ve yapay zeka size özel yorumlar üretsin")
                         .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.appText.opacity(0.8))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                         .padding(.bottom, 10)
@@ -206,11 +191,11 @@ struct HomeView: View {
             VStack(spacing: 15) {
                 Image(systemName: "photo.on.rectangle.angled")
                     .font(.system(size: 60))
-                    .foregroundColor(.white)
+                    .foregroundColor(.appText)
                 
                 Text("Fotoğraf Seç")
                     .font(.title3.bold())
-                    .foregroundColor(.white)
+                    .foregroundColor(.appText)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 200)
@@ -260,7 +245,7 @@ struct HomeView: View {
                     
                     Text("Senin İçin Kehanet")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.appText)
                     
                     Image(systemName: "sparkles")
                         .font(.system(size: 24))
@@ -322,7 +307,7 @@ struct HomeView: View {
                                 
                                 Text(paragraph)
                                     .font(.system(size: 16, weight: .regular, design: .serif))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.appText)
                                     .lineSpacing(6)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -381,22 +366,8 @@ struct HomeView: View {
                         Text("Yeni Fal Baktır")
                             .fontWeight(.semibold)
                     }
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding(.vertical, 15)
-                    .padding(.horizontal, 25)
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [Color(#colorLiteral(red: 0.5568627715, green: 0.3529411852, blue: 0.9686274529, alpha: 1)), Color(#colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1))]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                    )
-                    .shadow(color: Color(#colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1)).opacity(0.3), radius: 10, x: 0, y: 5)
                 }
+                .appPrimaryButton()
                 .padding(.vertical)
             }
         }
@@ -464,7 +435,7 @@ struct HomeView: View {
             
             Text(message)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.appText)
                 .multilineTextAlignment(.center)
                 .padding()
             
@@ -474,17 +445,9 @@ struct HomeView: View {
                 }
             } label: {
                 Text("Tekrar Dene")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.red.opacity(0.7))
-                    )
-                    .shadow(radius: 5)
-                    .padding(.horizontal, 40)
             }
+            .appPrimaryButton()
+            .padding(.horizontal)
         }
         .padding()
         .background(Color.black.opacity(0.3))
